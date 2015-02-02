@@ -39,6 +39,11 @@
 window.localStorage.clear();
 
 /*
+STEVE:
+var discoveryClientIDDefault="cUXestEceBaThepasudawRU3";
+var discoveryClientSecretDefault="ECH2denBr7TR4j3za3hExubr";
+
+/*
 {
 "client_id": "828XdMklDx605VtbCm7B9XrR",
 "client_secret": "yvTIka091UnCl449z74926wZ",
@@ -58,13 +63,13 @@ window.localStorage.clear();
 */
 
 var discoveryServiceUriDefault="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //checked
-var discoveryClientIDDefault="828XdMklDx605VtbCm7B9XrR"; //checked
-var discoveryClientSecretDefault="Z9hy5sz8DALmBpn6MR7Nvd04"; //checked
+var discoveryClientIDDefault="cUXestEceBaThepasudawRU3"; //checked
+var discoveryClientSecretDefault="ECH2denBr7TR4j3za3hExubr"; //checked
 var logoServiceUriDefault="https://sb1.exchange.gsma.com/v1/logo"; //checked
 
 var discoveryServiceUri="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //checked
-var discoveryClientID="828XdMklDx605VtbCm7B9XrR"; //checked
-var discoveryClientSecret="Z9hy5sz8DALmBpn6MR7Nvd04"; //checked
+var discoveryClientID="cUXestEceBaThepasudawRU3"; //checked
+var discoveryClientSecret="ECH2denBr7TR4j3za3hExubr"; //checked
 var logoServiceUri="https://sb1.exchange.gsma.com/v1/logo"; //checked
 
 var apiClientID=null;
@@ -79,10 +84,13 @@ var subscriberId=null;
 var authorizationEndpoint=null;
 
 function atStartup() {
+    console.log("IN FUNCTION: atStartup");
     getLogos();
 }
 
 function getLogos() {
+    console.log("IN FUNCTION: getLogos");
+
     var sourceIP=null;
     var logosize="medium";
     var colormode="normal";
@@ -94,6 +102,8 @@ function getLogos() {
 }
   
 function logoComplete(logoResult) {
+    console.log("IN FUNCTION: logoComplete");
+
     if (logoResult && logoResult.logos && logoResult.logos.length>=1) {
         var url = getCacheApiLogo('exchange', 'operatorid', 'medium', 'normal', 'landscape');
         if (!!url) {
@@ -107,11 +117,15 @@ function logoComplete(logoResult) {
 }
 
 function startDemo(){
+    console.log("IN FUNCTION: startDemo");
+
     // steve's demo parsed mnc mcc here
     startActiveDiscovery();
 }
 
 function startActiveDiscovery() {
+    console.log("IN FUNCTION: startActiveDiscovery");
+
     var encrypt="basic";
     var sourceIP=null;
     var msisdn=null;
@@ -123,6 +137,12 @@ function startActiveDiscovery() {
 }
 
 function activeDiscoveryComplete(discoveryResult, status) {
+    console.log("IN FUNCTION: activeDiscoveryComplete");
+
+    console.log("HTTP Status Code is "+status);
+    console.log("Callback for "+JSON.stringify(discoveryResult));
+    console.log("Location = "+window.location.href);
+
     if (status==200) {
         $('#status').val('Discovery complete');
         if (discoveryResult && !!discoveryResult.getResponse()) {
@@ -133,6 +153,65 @@ function activeDiscoveryComplete(discoveryResult, status) {
         }
     }
 }
+
+function runAuthorization(discoveryResult) {
+    console.log("IN FUNCTION: runAuthorization");
+
+    var apiClientID=discoveryResult.getResponse().getClient_id();
+    var subscriberId=discoveryResult.getResponse().getSubscriber_id();
+    var authorizationEndpoint=discoveryResult.getResponse().getApiFunction('operatorid', 'authorization');
+
+    var prompt='login';
+    var max_age=3600;
+    var acr_values='2';
+    var login_hint=null;
+    if (!!discoveryResult.subscriberId) {
+        login_hint="ENCR_MSISDN:"+subscriberId;
+    }
+
+    var authorizationOptions = new AuthorizationOptions('page', 'en', 'en', 'Enter MSISDN', login_hint, null);
+    var state='State'+Math.random().toString(36);
+    var nonce='Nonce'+Math.random().toString(36);
+    var redirect_uri='http://localhost/app/authorised.html';
+
+    console.log("BEFORE AUTHORISE");
+    console.log("authorizationEndpoint: " + authorizationEndpoint);
+    console.log("apiClientID: " + apiClientID);
+    console.log("redirect_uri: " + redirect_uri);
+    console.log("state: " + state);
+    console.log("nonce: " + nonce);
+    console.log("prompt: " + prompt);
+    console.log("max_age: " + max_age);
+    console.log("acr_values: " + acr_values);
+    console.log("authorizationOptions: " + authorizationOptions);
+    authorize(authorizationEndpoint, apiClientID, 'openid profile email userinfo', redirect_uri, 'code', state, nonce, prompt, max_age, acr_values, authorizationOptions, authorizationCallbackFunction);
+}
+
+function authorizationCallbackFunction(data) {
+    console.log("IN FUNCTION: authorizationCallbackFunction");
+
+    console.log('authorization complete');
+    console.log("response="+JSON.stringify(data));
+
+    var code=data['code'];
+    var state=data['state'];
+    var error=data['error'];
+
+    var discoveryDetails=getCacheDiscoveryItem();
+    var tokenEndpoint=discoveryDetails.getResponse().getApiFunction('operatorid', 'token');
+    var apiClientID=discoveryDetails.getResponse().getClient_id();
+    var apiClientSecret=discoveryDetails.getResponse().getClient_secret();
+
+    if (code && code!=null && (code.trim().length)>0) {
+        $('#status').val('Authorized');
+        $('#code').val(code);
+
+        tokenFromAuthorizationCode(tokenEndpoint, code, apiClientID, apiClientSecret,'http://localhost/app/authorised.html', tokenReceived);
+    } else {
+        $('#status').val('Error');
+    }
+}
+
 </script>
 <!-- /END MOBILE CONNECT DEMO -->
 
