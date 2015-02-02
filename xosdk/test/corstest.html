@@ -1,0 +1,44 @@
+<html>
+
+<script>
+
+var createCORSRequest = function(method, url) {
+  var xhr = new XMLHttpRequest();
+  if ("withCredentials" in xhr) {
+    // Most browsers.
+    xhr.open(method, url, true);
+  } else if (typeof XDomainRequest != "undefined") {
+    // IE8 & IE9
+    xhr = new XDomainRequest();
+    xhr.open(method, url);
+  } else {
+    // CORS not supported.
+    xhr = null;
+  }
+  return xhr;
+};
+
+//var url = 'http://localhost:3000/telenor_group/v2/discovery?Identified-MCC=000&Identified-MNC=01&Redirect_URL=http://apigee.com';
+var url = 'https://stage-exchange-test.apigee.net/gsma/v2/discovery?Redirect_URL=http://localhost/';
+var method = 'GET';
+var xhr = createCORSRequest(method, url);
+
+xhr.onload = function() {
+  // Success code goes here.
+  alert("Success");
+};
+
+xhr.onerror = function() {
+  // Error code goes here.
+  alert("Error");
+};
+
+
+xhr.withCredentials = true;
+
+xhr.setRequestHeader('Authorization', 'Basic Y1VYZXN0RWNlQmFUaGVwYXN1ZGF3UlUzOkVDSDJkZW5CcjdUUjRqM3phM2hFeHVicg==');
+xhr.send();
+
+</script>
+
+</html>

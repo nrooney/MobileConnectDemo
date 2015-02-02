@@ -1,0 +1,438 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>HTML5 Mini Project</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="assets/css/style.css" rel="stylesheet"> 
+
+    <!-- Custom styles for this template -->
+    <!-- <link href="bower_components/stylesheets/starter-template.css" rel="stylesheet"> -->
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script src="../../assets/js/ie-emulation-modes-warning.js"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+<!-- MOBILE CONNECT DEMO -->
+<!-- STEP 1: Downloading and including the HTML5 SDK. -->
+<script language="JavaScript" src="/app/assets/javascripts/DiscoverySDK.js" type="text/javascript"></script>
+<script language="JavaScript" src="/app/assets/javascripts/LogoSDK.js" type="text/javascript"></script>
+<script language="JavaScript" src="/app/assets/javascripts/Base64Utils.js" type="text/javascript"></script>
+<script language="JavaScript" src="/app/assets/javascripts/OpenIdConnectSDK.js" type="text/javascript"></script>
+
+<script language="JavaScript">
+
+window.localStorage.clear();
+
+/*
+{
+"client_id": "828XdMklDx605VtbCm7B9XrR",
+"client_secret": "yvTIka091UnCl449z74926wZ",
+"status": "approved",
+"type": "development",
+"redirectUri": "https://api.exchange.gsma.com"
+}
+
+
+{
+    "client_id": "Ik07mMFeBjx43Qc6W261hOQ1",
+    "client_secret": "Z9hy5sz8DALmBpn6MR7Nvd04",
+    "status": "approved",
+    "type": "production",
+    "redirectUri": "https://api.exchange.gsma.com"
+}
+*/
+
+var discoveryServiceUriDefault="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //checked
+var discoveryClientIDDefault="828XdMklDx605VtbCm7B9XrR"; //checked
+var discoveryClientSecretDefault="Z9hy5sz8DALmBpn6MR7Nvd04"; //checked
+var logoServiceUriDefault="https://sb1.exchange.gsma.com/v1/logo"; //checked
+
+var discoveryServiceUri="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //checked
+var discoveryClientID="828XdMklDx605VtbCm7B9XrR"; //checked
+var discoveryClientSecret="Z9hy5sz8DALmBpn6MR7Nvd04"; //checked
+var logoServiceUri="https://sb1.exchange.gsma.com/v1/logo"; //checked
+
+var apiClientID=null;
+var apiClientSecret=null;
+
+var operatorIdentified=false;
+var operatorName=null;
+var mcc=null;
+var mnc=null;
+var subscriberId=null;
+
+var authorizationEndpoint=null;
+
+// RUNS FIRST, manages console and localstorage
+function atStartup() {
+    // console.log('defaults');
+    // console.log('discoveryServiceUri='+discoveryServiceUri);
+    // console.log('discoveryClientID='+discoveryClientID);
+    // console.log('discoveryClientSecret='+discoveryClientSecret);
+    // console.log('logoServiceUri='+logoServiceUri);
+
+    // add to localstorage
+    if (!!localStorage.getObject('discoveryServiceUri')) discoveryServiceUri=localStorage.getObject('discoveryServiceUri');
+    if (!!localStorage.getObject('discoveryClientID')) discoveryClientID=localStorage.getObject('discoveryClientID');
+    if (!!localStorage.getObject('discoveryClientSecret')) discoveryClientSecret=localStorage.getObject('discoveryClientSecret');
+    if (!!localStorage.getObject('logoServiceUri')) logoServiceUri=localStorage.getObject('logoServiceUri');
+
+    // add to console
+    console.log('recovered from storage');
+    // console.log('discoveryServiceUri='+discoveryServiceUri);
+    // console.log('discoveryClientID='+discoveryClientID);
+    // console.log('discoveryClientSecret='+discoveryClientSecret);
+    // console.log('logoServiceUri='+logoServiceUri);
+
+    // assigning to variables
+    $('#discoveryUrl').val(discoveryServiceUri);
+    $('#clientId').val(discoveryClientID);
+    $('#clientSecret').val(discoveryClientSecret);
+    $('#logoUrl').val(logoServiceUri);
+ 
+    // get cached item from sdk
+    discoveryDetails = getCacheDiscoveryItem();
+    if (discoveryDetails) {
+      if (discoveryDetails.getTtl()) { console.log("TTL "+discoveryDetails.getTtl()); }
+      if (discoveryDetails.getResponse()) {
+          console.log("DiscoveryResponse "+JSON.stringify(discoveryDetails.getResponse()));
+          processDiscoveryResult(discoveryDetails);
+
+          console.log("FUNCTION: atStartup");
+          getLogos(); //1
+          $('#discoveryStatus').val('Using cached details');
+  }
+    }
+}
+
+// SECOND CALL, calls parseMccMnc();, startActiveDiscovery();
+function startDemo() {
+    parseMccMnc();
+    startActiveDiscovery();
+}
+
+// THIRD CALL, gets MNC MCC
+function parseMccMnc() {
+    var mccmnc=$('#preselectedOperator').val(); //taken from select box`
+    if (mccmnc=="_") {
+        this.mcc=null;
+        this.mnc=null;
+    } else {
+        var sv=mccmnc.split("_",2);
+        if (sv.length==2) {
+            this.mcc=sv[0];
+            this.mnc=sv[1];
+        }
+    }
+}
+
+// FORTH CALL, calls getDiscoveryActive from SDK
+function startActiveDiscovery() {
+    var encrypt="basic";
+    var sourceIP=null;
+    var msisdn=null;
+    var redirectUri="http://localhost/app/discovered.html"; //"https://api.exchange.gsma.com"
+
+    console.log("Starting active discovery");
+
+    getDiscoveryActive(discoveryServiceUri, discoveryClientID, discoveryClientSecret, encrypt,
+                   mcc, mnc, msisdn, sourceIP, redirectUri, activeDiscoveryComplete);
+}
+
+function passiveDiscoveryComplete(discoveryResult,status) {
+    console.log("HTTP Status Code is "+status);
+    console.log("Callback for "+JSON.stringify(discoveryResult));
+    if (status==200) {
+      if (discoveryResult.getTtl()) { console.log("TTL "+discoveryResult.getTtl()); }
+      if (discoveryResult.getResponse()) {
+          console.log("DiscoveryResponse "+JSON.stringify(discoveryResult.getResponse()));
+          processDiscoveryResult(discoveryResult);
+          $('#discoveryStatus').val('Discovered in passive mode');
+  }
+    }
+    console.log("FUNCTION: passiveDiscoveryComplete");
+    getLogos(); //2
+}
+
+function getLogos() {
+    var sourceIP=null;
+    var logosize="medium";
+    var colormode="normal";
+    var aspect="landscape";
+    
+    console.log("Starting request for logos");
+    getLogo(logoServiceUri, mcc, mnc, sourceIP, 'operatorid', logosize, colormode, aspect, logoComplete);
+}
+
+function logoComplete(logoResult) {
+    console.log("Callback for "+JSON.stringify(logoResult));
+    if (logoResult && logoResult.logos && logoResult.logos.length>=1) {
+        var first=logoResult.logos[0];
+        var url=first.url;
+        if (url) {
+            $('#loginButton').html('<img src=\''+url+'\' alt=\'Login with Mobile Connect\'/>');
+        }
+    }
+}
+
+function activeDiscoveryComplete(discoveryResult, status) {
+    console.log("HTTP Status Code is "+status);
+    console.log("Callback for "+JSON.stringify(discoveryResult));
+    console.log("Location = "+window.location.href);
+    if (status==200) {
+      if (discoveryResult && !!discoveryResult.getTtl()) { console.log("TTL "+discoveryResult.getTtl()); }
+      if (discoveryResult && !!discoveryResult.getResponse()) {
+          console.log("DiscoveryResponse "+JSON.stringify(discoveryResult.getResponse()));
+          processDiscoveryResult(discoveryResult);
+          $('#discoveryStatus').val('Discovered in active mode');
+      }
+    }
+
+    console.log("FUNCTION: activeDiscoveryComplete");
+    getLogos(); //3
+}
+
+function startLogin() {
+    console.log('Login now');
+    if (authorizationEndpoint) {
+        console.log('Starting authorization');
+        runAuthorization();
+    } else {
+        console.log('Need active discovery');
+        startDiscoveryActive();
+    }
+    
+}
+
+function runAuthorization() {
+    prompt='login';
+    max_age=3600;
+    acr_values='PCR';
+    login_hint=null;
+    if (!!subscriberId) {
+  login_hint="ENCR_MSISDN:"+subscriberId;
+console.log("login_hint="+login_hint);
+    }
+
+    authorizationOptions=new AuthorizationOptions('page', 'en', 'en', 'Enter MSISDN', login_hint, null); 
+    state='State'+Math.random().toString(36);
+    nonce='Nonce'+Math.random().toString(36);
+    redirect_uri="http://localhost/app/discovered.html";//'http://mc.mobilesites.net/authorised.html'; //"https://api.exchange.gsma.com"
+
+console.log("Login hint set to "+authorizationOptions['login_hint']);
+    authorize(authorizationEndpoint, apiClientID, 'openid profile, email userinfo', redirect_uri, 'code', state, nonce,
+              prompt, max_age, acr_values, authorizationOptions, authorizationCallbackFunction);
+}
+
+function authorizationCallbackFunction(data) {
+    console.log('authorization complete');
+    console.log("response="+JSON.stringify(data));
+
+    code=data['code'];
+    state=data['state'];
+    error=data['error'];
+
+    discoveryDetails=getCacheDiscoveryItem();
+    tokenEndpoint=discoveryDetails.getResponse().getApiFunction('operatorid', 'token');
+    apiClientID=discoveryDetails.getResponse().getClient_id();
+    apiClientSecret=discoveryDetails.getResponse().getClient_secret();
+
+    console.log('code='+code+' length='+code.trim().length);
+
+    if (code && code!=null && (code.trim().length)>0) {
+        $('#status').val('Authorized');
+        $('#code').val(code);
+
+        tokenFromAuthorizationCode(tokenEndpoint, code, apiClientID, apiClientSecret,
+                                       'http://mc.mobilesites.net/authorised.html', tokenReceived);
+
+    } else {
+        $('#status').val('Error');
+    }
+
+}
+
+function tokenReceived(token) {
+    console.log("token response="+JSON.stringify(token));
+    if (!!token.refresh_token) $('#refresh_token').val(token.refresh_token);
+    if (!!token.expires_in) $('#expires_in').val(token.expires_in);
+    if (!!token.token_type) $('#token_type').val(token.token_type);
+    if (!!token.access_token) {
+        $('#access_token').val(token.access_token);
+        discoveryDetails=getCacheDiscoveryItem();
+        userinfoEndpoint=discoveryDetails.getResponse().getApiFunction('operatorid', 'userinfo');
+        $('#status').val('Authorized + access token retrieved');
+        if (userinfoEndpoint && userinfoEndpoint.trim().length>0) {
+            userinfo(userinfoEndpoint, token.access_token, userinfoCallbackFunction);
+        }
+    }
+}
+
+function userinfoCallbackFunction(userinfo) {
+    console.log("userinfo response="+JSON.stringify(userinfo));
+    if (!!userinfo.email) $('#email').val(userinfo.email);
+    if (userinfo && userinfo.email_verified!==null) $('#email_verified').val(userinfo.email_verified?'true':'false');
+}
+
+
+function processDiscoveryResult(discoveryResult) {
+    operatorIdentified=true;
+    operatorName=discoveryResult.getResponse().getServing_operator();
+    apiClientID=discoveryResult.getResponse().getClient_id();
+    apiClientSecret=discoveryResult.getResponse().getClient_secret();
+    subscriberId=discoveryResult.getResponse().getSubscriber_id();
+    $('#operatorName').val(operatorName);
+    var endpoints=discoveryResult.getResponse().getApi('operatorid');
+    
+    console.log("apiClientID "+JSON.stringify(apiClientID));
+    console.log("apiClientSecret "+JSON.stringify(apiClientSecret));
+    console.log("subscriberId "+JSON.stringify(subscriberId));
+    console.log("endpoint data "+JSON.stringify(endpoints));
+    
+    authorizationEndpoint=discoveryResult.getResponse().getApiFunction('operatorid', 'authorization');
+    console.log("authorization endpoint "+authorizationEndpoint);
+    if (authorizationEndpoint && authorizationEndpoint!=null) {
+        operatorIdentified=true;
+    }
+}
+
+
+function restoreConfigDefaults() {
+    discoveryServiceUri=discoveryServiceUriDefault;
+    discoveryClientID=discoveryClientIDDefault;
+    discoveryClientSecret=discoveryClientSecretDefault;
+    logoServiceUri=logoServiceUriDefault;
+    $('#discoveryUrl').val(discoveryServiceUri);
+    $('#clientId').val(discoveryClientID);
+    $('#clientSecret').val(discoveryClientSecret);
+    $('#logoUrl').val(logoServiceUri);
+    storeConfiguration();
+}
+
+function clearDiscoveryCache() {
+    clearCacheDiscoveryItem();
+    apiClientID=null;
+    apiClientSecret=null;
+    
+    operatorIdentified=false;
+    operatorName=null;
+    mcc=null;
+    mnc=null;
+    
+    $('#discoveryStatus').val('Not discovered');
+    $('#operatorName').val('Not known');
+}
+
+function storeConfiguration() {
+    discoveryServiceUri=$('#discoveryUrl').val();
+    discoveryClientID=$('#clientId').val();
+    discoveryClientSecret=$('#clientSecret').val();
+    logoServiceUri=$('#logoUrl').val();
+
+    localStorage.setObject('discoveryServiceUri',$('#discoveryUrl').val());
+    localStorage.setObject('discoveryClientID',$('#clientId').val());
+    localStorage.setObject('discoveryClientSecret',$('#clientSecret').val());
+    localStorage.setObject('logoServiceUri',$('#logoUrl').val());
+}
+
+//NOT USED
+function startPassiveDiscovery() {
+    var encrypt="basic";
+    var sourceIP=null;
+    var msisdn=null;
+    var redirectUri="http://mc.mobilesites.net/discovered.html";
+
+    console.log("Starting discovery in passive mode "+location.href);
+    
+    getDiscoveryPassive(discoveryServiceUri, discoveryClientID, discoveryClientSecret, encrypt,
+                        mcc, mnc, msisdn, sourceIP, redirectUri, passiveDiscoveryComplete);
+}
+
+
+</script>
+<!-- /END MOBILE CONNECT DEMO -->
+
+  </head>
+
+  <body onLoad='javascript:atStartup();'>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Project name</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="starter-template">
+        <h1>Bootstrap starter template</h1>
+        
+        <div>
+          <h2>Discovery</h2>
+          <!-- <label>Preselected operator (passive discovery)</label> -->
+          <select name="preselectedOperator" id="preselectedOperator">
+              <option value="_" selected="selected">None</option>
+              <!-- <option value="002_04">Test operator</option>
+              <option value="413_02">Dialog Sri Lanka</option>
+              <option value="413_01">Mobitel Sri Lanka</option> -->
+          </select>
+
+          <!-- DISCOVERY BUTTON! -->
+          <p name="startPassiveBlock" id="startPassiveBlock"><input type="button" onClick="startDemo(); return false;" value="Start Discovery"/></p>
+
+          <label>Discovery status:</label><input type="text" readonly="readonly" id="discoveryStatus" name="discoveryStatus" value="Not discovered"/>
+          <label>Operator:</label><input type="text" readonly="readonly" id="operatorName" name="operatorName" value="Not known"/>
+
+          <!-- LOGO -->
+          <p name="loginBlock" id="loginBlock" >
+            <a name="loginButton" id="loginButton" onClick="startLogin(); return false;" disabled="disabled" href='#'>
+              <em>Login with Mobile Connect</em>
+            </a>
+          </p>
+        </div>
+
+      </div>
+
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/bootstrap-sass-official/assets/javascripts/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="assets/javascripts/app.js" rel="stylesheet"></script>
+  </body>
+</html>

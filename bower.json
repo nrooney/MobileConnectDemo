@@ -1,0 +1,21 @@
+{
+  "name": "html5project",
+  "version": "1",
+  "description": "HTML5 project for Mobile Connect",
+  "main": "app/index.html",
+  "authors": [
+    "Natasha Rooney"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap-sass-official": "3.3.2",
+    "jquery": "2.1.3"
+  }
+}
