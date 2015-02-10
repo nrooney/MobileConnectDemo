@@ -397,39 +397,40 @@ function startPassiveDiscovery() {
       </div>
     </nav>
 
-    <div class="container">
+      <div class="jumbotron">
+        <div class="container">
 
-      <div class="starter-template">
-        <h1>Bootstrap starter template</h1>
-        
-        <div>
-          <h2>Discovery</h2>
-          <!-- <label>Preselected operator (passive discovery)</label> -->
-          <select name="preselectedOperator" id="preselectedOperator">
-              <option value="_" selected="selected">None</option>
-              <!-- <option value="002_04">Test operator</option>
-              <option value="413_02">Dialog Sri Lanka</option>
-              <option value="413_01">Mobitel Sri Lanka</option> -->
-          </select>
+          <div class="starter-template">
+            <h1>Bootstrap starter template</h1>
+            
+            <div>
+              <h2>Discovery</h2>
+              <!-- <label>Preselected operator (passive discovery)</label> -->
+              <select name="preselectedOperator" id="preselectedOperator">
+                  <option value="_" selected="selected">None</option>
+                  <!-- <option value="002_04">Test operator</option>
+                  <option value="413_02">Dialog Sri Lanka</option>
+                  <option value="413_01">Mobitel Sri Lanka</option> -->
+              </select>
 
-          <!-- DISCOVERY BUTTON! -->
-          <p name="startPassiveBlock" id="startPassiveBlock"><input type="button" onClick="startDemo(); return false;" value="Start Discovery"/></p>
+              <!-- DISCOVERY BUTTON! -->
+              <p name="startPassiveBlock" id="startPassiveBlock"><input type="button" onClick="startDemo(); return false;" value="Start Discovery"/></p>
 
-          <label>Discovery status:</label><input type="text" readonly="readonly" id="discoveryStatus" name="discoveryStatus" value="Not discovered"/>
-          <label>Operator:</label><input type="text" readonly="readonly" id="operatorName" name="operatorName" value="Not known"/>
+              <label>Discovery status:</label><input type="text" readonly="readonly" id="discoveryStatus" name="discoveryStatus" value="Not discovered"/>
+              <label>Operator:</label><input type="text" readonly="readonly" id="operatorName" name="operatorName" value="Not known"/>
 
-          <!-- LOGO -->
-          <p name="loginBlock" id="loginBlock" >
-            <a name="loginButton" id="loginButton" onClick="startLogin(); return false;" disabled="disabled" href='#'>
-              <em>Login with Mobile Connect</em>
-            </a>
-          </p>
-        </div>
+              <!-- LOGO -->
+              <p name="loginBlock" id="loginBlock" >
+                <a name="loginButton" id="loginButton" onClick="startLogin(); return false;" disabled="disabled" href='#'>
+                  <em>Login with Mobile Connect</em>
+                </a>
+              </p>
+            </div>
 
-      </div>
+          </div>
 
-    </div><!-- /.container -->
-
+        </div><!-- /.container -->
+      </div><!-- /.jumbotron -->
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

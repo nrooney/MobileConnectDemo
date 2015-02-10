@@ -1,12 +1,68 @@
 @import 'app/bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap';
 
 $primary-color: #333;
+$bodybackgroundgrey: #CCCCCE;
+/* disabled input & button background, input addon background, nav & tabs & pagination link hover background, jumbotron background, currently PALEBLUE*/
+$buttonhoversjumbobg: #4EA0E1;
+/* disabled link color, input placeholder color, dropdown header color, navbar inverse & link color, currently DARK ORANGE */
+$disabledlink: #BE6747;
+/* nav tab link hover color, currently PALEDARKBLUE */
+$navtablinkhover: #436AA2;
+/* link color, primary button background, pagination active background, progress bar background, label background, panel heading color, currently DARKGREY */
+$links: #4E4D5E;
+/* text color, legend color, dropdown link color, panel text color, code color, currently NAVYBLUE */
+$text: #292D4B;
+/* navbar inverse background, currently BLACK */
+$navbarinverse: #121320;
+
+$footerheight: 60px;
+
+html {
+  position: relative;
+  min-height: 100%;
+}
 
 body {
   padding-top: 50px;
+  background: $bodybackgroundgrey;
 }
 
-.starter-template {
-  padding: 40px 15px;
-  text-align: center;
+.jumbotron {
+	padding: 15px 0;
+	margin-bottom: 0px;
+}
+
+.apptitle {
+	background: $bodybackgroundgrey;
+}
+
+.login {
+	background: $buttonhoversjumbobg;
+
+	.loginright {
+		background: #fff;
+		padding: 15px;
+
+		#loginBlock {
+		border: 1px solid #000;
+		width: 100%;
+
+			img{
+				width: 30%;
+			}
+		}
+	}
+}
+
+.features {
+	background: $disabledlink;
+
+	p, h2, h3, h4, label {
+		color: #fff;
+	}
+}
+
+.footer {
+  height: $footerheight;
+  background-color: $navbarinverse;
 }

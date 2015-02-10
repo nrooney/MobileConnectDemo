@@ -7115,13 +7115,56 @@ button.close {
     display: none !important;
   }
 }
-body {
-  padding-top: 50px;
+/* disabled input & button background, input addon background, nav & tabs & pagination link hover background, jumbotron background, currently PALEBLUE*/
+/* disabled link color, input placeholder color, dropdown header color, navbar inverse & link color, currently DARK ORANGE */
+/* nav tab link hover color, currently PALEDARKBLUE */
+/* link color, primary button background, pagination active background, progress bar background, label background, panel heading color, currently DARKGREY */
+/* text color, legend color, dropdown link color, panel text color, code color, currently NAVYBLUE */
+/* navbar inverse background, currently BLACK */
+html {
+  position: relative;
+  min-height: 100%;
 }
 
-.starter-template {
-  padding: 40px 15px;
-  text-align: center;
+body {
+  padding-top: 50px;
+  background: #CCCCCE;
+}
+
+.jumbotron {
+  padding: 15px 0;
+  margin-bottom: 0px;
+}
+
+.apptitle {
+  background: #CCCCCE;
+}
+
+.login {
+  background: #4EA0E1;
+}
+.login .loginright {
+  background: #fff;
+  padding: 15px;
+}
+.login .loginright #loginBlock {
+  border: 1px solid #000;
+  width: 100%;
+}
+.login .loginright #loginBlock img {
+  width: 30%;
+}
+
+.features {
+  background: #BE6747;
+}
+.features p, .features h2, .features h3, .features h4, .features label {
+  color: #fff;
+}
+
+.footer {
+  height: 60px;
+  background-color: #121320;
 }
 
 /*# sourceMappingURL=style.css.map */
