@@ -39,11 +39,6 @@
 window.localStorage.clear();
 
 /*
-STEVE:
-var discoveryClientIDDefault="cUXestEceBaThepasudawRU3";
-var discoveryClientSecretDefault="ECH2denBr7TR4j3za3hExubr";
-
-/*
 {
 "client_id": "828XdMklDx605VtbCm7B9XrR",
 "client_secret": "yvTIka091UnCl449z74926wZ",
@@ -60,16 +55,29 @@ var discoveryClientSecretDefault="ECH2denBr7TR4j3za3hExubr";
     "type": "production",
     "redirectUri": "https://api.exchange.gsma.com"
 }
+
+Muthu said this works: 
+{
+    "client_id": "bAGDtUyghGlOMoml7mTD2SCypkjvXFfc",
+    "client_secret": "eLnuTIpTZebOM1oB",
+    "type": "development"
+}
+
+{
+   "client_id": "zZcA87C8WpT1G8Sii4AiVi82wAg8AGvU",
+   "client_secret": "G882M8yza3JrJYd6",
+   "type": "production"
+}
 */
 
-var discoveryServiceUriDefault="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //checked
-var discoveryClientIDDefault="cUXestEceBaThepasudawRU3"; //checked
-var discoveryClientSecretDefault="ECH2denBr7TR4j3za3hExubr"; //checked
+var discoveryServiceUriDefault="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //NOT GOING TO CHANGE 
+var discoveryClientIDDefault="bAGDtUyghGlOMoml7mTD2SCypkjvXFfc"; //checked
+var discoveryClientSecretDefault="Z9hy5sz8DALmBpn6MR7Nvd04"; //checked
 var logoServiceUriDefault="https://sb1.exchange.gsma.com/v1/logo"; //checked
 
 var discoveryServiceUri="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //checked
-var discoveryClientID="cUXestEceBaThepasudawRU3"; //checked
-var discoveryClientSecret="ECH2denBr7TR4j3za3hExubr"; //checked
+var discoveryClientID="bAGDtUyghGlOMoml7mTD2SCypkjvXFfc"; //checked
+var discoveryClientSecret="Z9hy5sz8DALmBpn6MR7Nvd04"; //checked
 var logoServiceUri="https://sb1.exchange.gsma.com/v1/logo"; //checked
 
 var apiClientID=null;
@@ -183,15 +191,14 @@ function runAuthorization(discoveryResult) {
     console.log("prompt: " + prompt);
     console.log("max_age: " + max_age);
     console.log("acr_values: " + acr_values);
-    console.log("authorizationOptions: " + authorizationOptions);
+    console.log("authorizationOptions: ");
+    console.log(authorizationOptions);
     authorize(authorizationEndpoint, apiClientID, 'openid profile email userinfo', redirect_uri, 'code', state, nonce, prompt, max_age, acr_values, authorizationOptions, authorizationCallbackFunction);
 }
 
 function authorizationCallbackFunction(data) {
     console.log("IN FUNCTION: authorizationCallbackFunction");
-
-    console.log('authorization complete');
-    console.log("response="+JSON.stringify(data));
+    console.log(data);
 
     var code=data['code'];
     var state=data['state'];
@@ -202,15 +209,47 @@ function authorizationCallbackFunction(data) {
     var apiClientID=discoveryDetails.getResponse().getClient_id();
     var apiClientSecret=discoveryDetails.getResponse().getClient_secret();
 
-    if (code && code!=null && (code.trim().length)>0) {
+    console.log("tokenEndpoint: " + tokenEndpoint);
+    console.log("apiClientID: " + apiClientID);
+    console.log("apiClientSecret: " + apiClientSecret);
+
+    console.log("BEFORE call: tokenFromAuthorizationCode");      
+    // if (code && code!=null && (code.trim().length)>0) {
         $('#status').val('Authorized');
         $('#code').val(code);
 
-        tokenFromAuthorizationCode(tokenEndpoint, code, apiClientID, apiClientSecret,'http://localhost/app/authorised.html', tokenReceived);
-    } else {
-        $('#status').val('Error');
+        tokenFromAuthorizationCode(tokenEndpoint, code, apiClientID, apiClientSecret,'http://mc.mobilesites.net/authorised.html', tokenReceived);
+    // } else {
+    //     console.log("error");
+    //     $('#status').val('Error');
+    // }
+}
+
+function tokenReceived(token) {
+    console.log("IN FUNCTION: tokenReceived");
+    console.log(token);
+
+    if (!!token.refresh_token) $('#refresh_token').val(token.refresh_token);
+    if (!!token.expires_in) $('#expires_in').val(token.expires_in);
+    if (!!token.token_type) $('#token_type').val(token.token_type);
+    if (!!token.access_token) {
+        $('#access_token').val(token.access_token);
+        var discoveryDetails = getCacheDiscoveryItem();
+        var userinfoEndpoint = discoveryDetails.getResponse().getApiFunction('operatorid', 'userinfo');
+        $('#status').val('Authorized + access token retrieved');
+        if (userinfoEndpoint && userinfoEndpoint.trim().length>0) {
+            userinfo(userinfoEndpoint, token.access_token, userinfoCallbackFunction);
+        }
     }
 }
+
+function userinfoCallbackFunction(userinfo) {
+    if (!!userinfo.email) $('#email').val(userinfo.email);
+    if (userinfo && userinfo.email_verified!==null) 
+        $('#email_verified').val(
+            userinfo.email_verified?'true':'false');
+}
+
 
 </script>
 <!-- /END MOBILE CONNECT DEMO -->
