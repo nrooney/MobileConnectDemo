@@ -29,71 +29,41 @@
 
 <!-- MOBILE CONNECT DEMO -->
 <!-- STEP 1: Downloading and including the HTML5 SDK. -->
-<script language="JavaScript" src="../app/assets/javascripts/DiscoverySDK.js" type="text/javascript"></script>
-<script language="JavaScript" src="../app/assets/javascripts/LogoSDK.js" type="text/javascript"></script>
-<script language="JavaScript" src="../app/assets/javascripts/Base64Utils.js" type="text/javascript"></script>
-<script language="JavaScript" src="../app/assets/javascripts/OpenIdConnectSDK.js" type="text/javascript"></script>
+<script language="JavaScript" src="/mobileconnectdemo/app/assets/javascripts/DiscoverySDK.js" type="text/javascript"></script>
+<script language="JavaScript" src="/mobileconnectdemo/app/assets/javascripts/LogoSDK.js" type="text/javascript"></script>
+<script language="JavaScript" src="/mobileconnectdemo/app/assets/javascripts/Base64Utils.js" type="text/javascript"></script>
+<script language="JavaScript" src="/mobileconnectdemo/app/assets/javascripts/OpenIdConnectSDK.js" type="text/javascript"></script>
 
 <script language="JavaScript">
 
 window.localStorage.clear();
 
-/*
-{
-"client_id": "828XdMklDx605VtbCm7B9XrR",
-"client_secret": "yvTIka091UnCl449z74926wZ",
-"status": "approved",
-"type": "development",
-"redirectUri": "https://api.exchange.gsma.com"
-}
-
-
-{
-    "client_id": "Ik07mMFeBjx43Qc6W261hOQ1",
-    "client_secret": "Z9hy5sz8DALmBpn6MR7Nvd04",
-    "status": "approved",
-    "type": "production",
-    "redirectUri": "https://api.exchange.gsma.com"
-}
-
-Muthu said this works: 
-{
-    "client_id": "bAGDtUyghGlOMoml7mTD2SCypkjvXFfc",
-    "client_secret": "eLnuTIpTZebOM1oB",
-    "type": "development"
-}
-
-{
-   "client_id": "zZcA87C8WpT1G8Sii4AiVi82wAg8AGvU",
-   "client_secret": "G882M8yza3JrJYd6",
-   "type": "production"
-}
-
-from afsar:
-Client_ID            gn_4etsUykydKQ7KmluCfuOHZFka
-Client_secret        XMulJazG3Y3nKjoWrcgKKYsYDHga
-*/
-
 var discoveryServiceUriDefault="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //NOT GOING TO CHANGE 
 
-var discoveryServiceUri="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //checked
-var discoveryClientID="bAGDtUyghGlOMoml7mTD2SCypkjvXFfc"; //checked
-var discoveryClientSecret="Z9hy5sz8DALmBpn6MR7Nvd04"; //checked
-var logoServiceUri="https://sb1.exchange.gsma.com/v1/logo"; //checked
+var discoveryServiceUri="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; 
+var discoveryClientID="bAGDtUyghGlOMoml7mTD2SCypkjvXFfc"; 
+var discoveryClientSecret="Z9hy5sz8DALmBpn6MR7Nvd04"; 
+var logoServiceUri="https://sb2.exchange.gsma.com/v1/logo"; 
 
 var apiClientID=null;
 var apiClientSecret=null;
 
-var operatorIdentified=false;
-var operatorName=null;
+var operatorIdentified=false; //SHOULD BE USING THIS SOMEWHERE!
+var operatorName = null;
 var mcc=null;
 var mnc=null;
-var subscriberId=null;
+var discRespApiClientID = null;
+var discRespSubscriberId = null;
+var authorizationEndpoint = null;
 
 var authorizationEndpoint=null;
 
 function atStartup() {
     console.log("\nIN FUNCTION: atStartup");
+
+    $("#cannotFindOperator").show();
+    $("#foundOperator").hide();
+    $("#timeToLogin").hide();
     getLogos();
 }
 
@@ -124,7 +94,7 @@ function logoComplete(logoResult) {
     }
 }
 
-function startDemo(){
+function startDiscovery(){
     // steve's demo parsed mnc mcc here
     startActiveDiscovery();
 }
@@ -134,8 +104,7 @@ function startActiveDiscovery() {
     var encrypt="basic";
     var sourceIP=null;
     var msisdn=null;
-    //var redirectUri="http://localhost/app/discovered.html"; //"https://api.exchange.gsma.com"
-    var redirectUri="http://thisnatasha.com/mobileconnectdemo/app/discovered.html"; //"https://api.exchange.gsma.com"
+    var redirectUri="http://thisnatasha.com/mobileconnectdemo/app/discovered.html"; 
     var mcc=null;
     var mnc=null;
 
@@ -154,26 +123,38 @@ function activeDiscoveryComplete(discoveryResult, status) {
         if (discoveryResult && !!discoveryResult.getResponse()) {
             if (discoveryResult.getResponse().
                 getApiFunction('operatorid', 'authorization')) {
-                runAuthorization(discoveryResult);
+                parseDiscoveryResult(discoveryResult)
             }
         }
     }
 }
 
-function runAuthorization(discoveryResult) {
-    console.log("\nIN FUNCTION: runAuthorization");
+function parseDiscoveryResult(discoveryResult){
+    console.log("\nIN FUNCTION: parseDiscoveryResult");
 
-    var apiClientID=discoveryResult.getResponse().getClient_id();
-    var subscriberId=discoveryResult.getResponse().getSubscriber_id();
-    var authorizationEndpoint=discoveryResult.getResponse().getApiFunction('operatorid', 'authorization');
+    console.log(discoveryResult);
+
+    operatorName = discoveryResult.getResponse().getServing_operator();
+    discRespApiClientID = discoveryResult.getResponse().getClient_id();
+    discRespSubscriberId = discoveryResult.getResponse().getSubscriber_id();
+    authorizationEndpoint = discoveryResult.getResponse().getApiFunction('operatorid', 'authorization');
+
+    $("#cannotFindOperator").hide();
+    $("#foundOperator").show();
+    $("#foundOperator #foundOperatorName").text(operatorName);
+    $("#timeToLogin").show();
+}
+
+function runAuthorization() {
+    console.log("\nIN FUNCTION: runAuthorization");
 
     var prompt='login';
     var max_age=3600;
     var acr_values='2';
     var login_hint=null;
-    if (!!discoveryResult.subscriberId) {
-        login_hint="ENCR_MSISDN:"+subscriberId;
-    }
+    // if (!!discoveryResult.subscriberId) {
+    //     login_hint="ENCR_MSISDN:"+subscriberId;
+    // }
 
     var authorizationOptions = new AuthorizationOptions('page', 'en', 'en', 'Enter MSISDN', login_hint, null);
     var state='State'+Math.random().toString(36);
@@ -182,13 +163,13 @@ function runAuthorization(discoveryResult) {
 
     // REWRITING THE AUTHORISATION ENDPOINT HERE TO REFLECT DIALOG PLATFORM
     authorizationEndpoint = "https://identity.mifetest.com:9443/oauth2/authorize";
-    apiClientID = "gn_4etsUykydKQ7KmluCfuOHZFka";
+    discRespApiClientID = "gn_4etsUykydKQ7KmluCfuOHZFka";
     apiClientSecret = "XMulJazG3Y3nKjoWrcgKKYsYDHga";
     // END
 
     console.log("BEFORE AUTHORISE");
     console.log("    OVERWRITTEN authorizationEndpoint: " + authorizationEndpoint); 
-    console.log("    OVERWRITTEN apiClientID: " + apiClientID);
+    console.log("    OVERWRITTEN discRespApiClientID: " + discRespApiClientID);
     console.log("    OVERWRITTEN apiClientSecret: " + apiClientSecret);
     // console.log("    redirect_uri: " + redirect_uri);
     // console.log("    state: " + state);
@@ -198,7 +179,7 @@ function runAuthorization(discoveryResult) {
     // console.log("    acr_values: " + acr_values);
     // console.log("    authorizationOptions: ");
     console.log(authorizationOptions);
-    authorize(authorizationEndpoint, apiClientID, 'openid profile email userinfo', redirect_uri, 'code', state, nonce, prompt, max_age, acr_values, authorizationOptions, authorizationCallbackFunction);
+    authorize(authorizationEndpoint, discRespApiClientID, 'openid profile email userinfo', redirect_uri, 'code', state, nonce, prompt, max_age, acr_values, authorizationOptions, authorizationCallbackFunction);
 }
 
 function authorizationCallbackFunction(data) {
@@ -300,52 +281,50 @@ function userinfoCallbackFunction(userinfo) {
 
         <div class="jumbotron login">
             <div class="container">
-                  <!-- <p>Login with your mobile carrier. </p>
-                  <!-- <label>Preselected operator (passive discovery)</label> -->
-                  <!-- <select name="preselectedOperator" id="preselectedOperator">
-                      <option value="_" selected="selected">None</option>
-                      <!-- <option value="002_04">Test operator</option>
-                      <option value="413_02">Dialog Sri Lanka</option>
-                      <option value="413_01">Mobitel Sri Lanka</option> -->
-                  <!-- </select>
 
-                  <!-- DISCOVERY BUTTON! -->
-                  <!-- <p name="startPassiveBlock" id="startPassiveBlock"><input type="button" onClick="startDemo(); return false;" value="Start Discovery"/></p> -->
-                  <!-- <input type="button" class="btn btn-default" onClick="startDemo(); return false;" value="Start Discovery"/>
-
-                  <!-- <label>Discovery status:</label><input type="text" readonly="readonly" id="discoveryStatus" name="discoveryStatus" value="Not discovered"/>
-                  <label>Operator:</label><input type="text" readonly="readonly" id="operatorName" name="operatorName" value="Not known"/> -->
-
-                  <div class="row">
-                    <div class="col-md-6 loginleft">
-                        <a name="login"></a><h2>Login</h2> 
-                        <p>GameZube requires you to login using Mobile Connect, Mobile Connect uses your mobile phone number and network operator to log you in safely and securly. 
-
-                        <form>
-                            <fieldset>
-                                <!-- <div class="form-group">
-                                  <label for="operatorSelect">Choose your Operator:</label>
-                                  <select name="preselectedOperator" id="preselectedOperator" id="operatorSelect" class="form-control">
-                                    <option value="_" selected="selected">None</option>
-                                  </select>
-                                </div> -->
-                                <input type="button" class="btn btn-primary" onClick="startDemo(); return false;" value="Start Discovery"/>
-                                
-                                <fieldset disabled>
-                                    <button type="submit" class="btn btn-primary">Login</button>
-                                </fieldset>
-                            </fieldset>
-                        </form>
-
-                    </div>
-                    <div class="col-md-6 loginright">
-                        <!-- LOGO -->
-                        <div name="loginBlock" id="loginBlock" >
-                            <span name="loginlogo" id="loginlogo"><em>Login with Mobile Connect</em></span>
-                        </div>
-                        
+                <!-- TOP ROW (intro) -->
+                <div class="col-md-12">
+                    <a name="login"></a><h2>Login</h2> 
+                    <p>GameZube requires you to login using Mobile Connect, Mobile Connect uses your mobile phone number and network operator to log you in safely and securly. 
+                    <div name="loginBlock" id="loginBlock" >
+                        <span name="loginlogo" id="loginlogo"><em>Login with Mobile Connect</em></span>
                     </div>
                 </div>
+
+                <!-- THREE COLUMNS FOR LOGIN: DISCOVER-->
+                <div class="col-md-4">
+                    <h3>Discover</h3>
+                    <div id="cannotFindOperator" style="display:block">
+                        <p>We cannot detect your operator, please click below to locate discover your operator!</p>
+                        <form>
+                            <fieldset>
+                                <input type="button" class="btn btn-primary" onClick="startDiscovery(); return false;" value="Start Discovery"/>
+                            </fieldset>
+                        </form>
+                    </div>
+                    <div id="foundOperator" style="display:none">
+                        <p>Your operator has been identified as <span id="foundOperatorName"></span>, now you can login!</p>
+                    </div>
+                </div>
+
+                <!-- THREE COLUMNS FOR LOGIN: LOGIN-->
+                <div class="col-md-4">
+                    <h3>Login</h3>
+                    <div id="timeToLogin" style="display:none">
+                        <form>
+                            <!-- <fieldset disabled> -->
+                            <fieldset>
+                                <button type="button" class="btn btn-primary" onClick="runAuthorization()">Login</button>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- THREE COLUMNS FOR LOGIN: SUCCESS-->
+                <div class="col-md-4">
+                    <h3>Success!</h3>
+                </div>
+
             </div><!-- /.container -->
         </div><!-- /.jumbotron -->
 
