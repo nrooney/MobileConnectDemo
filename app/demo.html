@@ -75,9 +75,6 @@ Client_secret        XMulJazG3Y3nKjoWrcgKKYsYDHga
 */
 
 var discoveryServiceUriDefault="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //NOT GOING TO CHANGE 
-// var discoveryClientIDDefault="bAGDtUyghGlOMoml7mTD2SCypkjvXFfc"; //checked
-// var discoveryClientSecretDefault="Z9hy5sz8DALmBpn6MR7Nvd04"; //checked
-// var logoServiceUriDefault="https://sb1.exchange.gsma.com/v1/logo"; //checked
 
 var discoveryServiceUri="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //checked
 var discoveryClientID="bAGDtUyghGlOMoml7mTD2SCypkjvXFfc"; //checked
@@ -96,10 +93,13 @@ var subscriberId=null;
 var authorizationEndpoint=null;
 
 function atStartup() {
+    console.log("\nIN FUNCTION: atStartup");
     getLogos();
 }
 
 function getLogos() {
+    console.log("\nIN FUNCTION: getLogos");
+
     var sourceIP=null;
     var logosize="medium";
     var colormode="normal";
@@ -110,7 +110,7 @@ function getLogos() {
 }
   
 function logoComplete(logoResult) {
-    console.log("SUCCESS: Logo Load Complete");
+    console.log("\nIN FUNCTION: logoComplete");
 
     if (logoResult && logoResult.logos && logoResult.logos.length>=1) {
         var url = getCacheApiLogo('exchange', 'operatorid', 'medium', 'normal', 'landscape');
@@ -130,10 +130,12 @@ function startDemo(){
 }
 
 function startActiveDiscovery() {
+    console.log("\nIN FUNCTION: startActiveDiscovery");
     var encrypt="basic";
     var sourceIP=null;
     var msisdn=null;
-    var redirectUri="http://localhost/app/discovered.html"; //"https://api.exchange.gsma.com"
+    //var redirectUri="http://localhost/app/discovered.html"; //"https://api.exchange.gsma.com"
+    var redirectUri="http://thisnatasha.com/mobileconnectdemo/app/discovered.html"; //"https://api.exchange.gsma.com"
     var mcc=null;
     var mnc=null;
 
@@ -141,7 +143,7 @@ function startActiveDiscovery() {
 }
 
 function activeDiscoveryComplete(discoveryResult, status) {
-    console.log("SUCCESS: Active Discovery Complete");
+    console.log("\nSUCCESS: Active Discovery Complete");
 
     console.log("    HTTP Status Code: "+status);
     console.log("    Callback for: "+JSON.stringify(discoveryResult));
@@ -159,7 +161,7 @@ function activeDiscoveryComplete(discoveryResult, status) {
 }
 
 function runAuthorization(discoveryResult) {
-    console.log("IN FUNCTION: runAuthorization");
+    console.log("\nIN FUNCTION: runAuthorization");
 
     var apiClientID=discoveryResult.getResponse().getClient_id();
     var subscriberId=discoveryResult.getResponse().getSubscriber_id();
@@ -187,20 +189,20 @@ function runAuthorization(discoveryResult) {
     console.log("BEFORE AUTHORISE");
     console.log("    OVERWRITTEN authorizationEndpoint: " + authorizationEndpoint); 
     console.log("    OVERWRITTEN apiClientID: " + apiClientID);
-    console.log("    redirect_uri: " + redirect_uri);
-    console.log("    state: " + state);
-    console.log("    nonce: " + nonce);
-    console.log("    prompt: " + prompt);
-    console.log("    max_age: " + max_age);
-    console.log("    acr_values: " + acr_values);
-    console.log("    authorizationOptions: ");
+    console.log("    OVERWRITTEN apiClientSecret: " + apiClientSecret);
+    // console.log("    redirect_uri: " + redirect_uri);
+    // console.log("    state: " + state);
+    // console.log("    nonce: " + nonce);
+    // console.log("    prompt: " + prompt);
+    // console.log("    max_age: " + max_age);
+    // console.log("    acr_values: " + acr_values);
+    // console.log("    authorizationOptions: ");
     console.log(authorizationOptions);
     authorize(authorizationEndpoint, apiClientID, 'openid profile email userinfo', redirect_uri, 'code', state, nonce, prompt, max_age, acr_values, authorizationOptions, authorizationCallbackFunction);
 }
 
 function authorizationCallbackFunction(data) {
-    console.log("IN FUNCTION: authorizationCallbackFunction");
-    console.log(data);
+    console.log("\nIN FUNCTION: authorizationCallbackFunction");
 
     var code=data['code'];
     var state=data['state'];
@@ -213,11 +215,14 @@ function authorizationCallbackFunction(data) {
 
     // REWRITING THE TOKEN ENDPOINT HERE TO REFLECT DIALOG PLATFORM, CLIENT ID, CLIENT SECRET
     tokenEndpoint = "https://identity.mifetest.com:9443/oauth2/token";
+    apiClientID = "gn_4etsUykydKQ7KmluCfuOHZFka";
+    apiClientSecret = "XMulJazG3Y3nKjoWrcgKKYsYDHga";
     // END
 
     console.log("OVERWRITTEN tokenEndpoint: " + tokenEndpoint);
     console.log("OVERWRITTEN apiClientID: " + apiClientID);
     console.log("OVERWRITTEN apiClientSecret: " + apiClientSecret);
+    console.log("Data: " + data);
 
     // console.log("BEFORE call: tokenFromAuthorizationCode");      
     // if (code && code!=null && (code.trim().length)>0) {
@@ -232,7 +237,7 @@ function authorizationCallbackFunction(data) {
 }
 
 function tokenReceived(token) {
-    console.log("IN FUNCTION: tokenReceived");
+    console.log("\nIN FUNCTION: tokenReceived");
     console.log(token);
 
     if (!!token.refresh_token) $('#refresh_token').val(token.refresh_token);
@@ -318,12 +323,12 @@ function userinfoCallbackFunction(userinfo) {
 
                         <form>
                             <fieldset>
-                                <div class="form-group">
+                                <!-- <div class="form-group">
                                   <label for="operatorSelect">Choose your Operator:</label>
                                   <select name="preselectedOperator" id="preselectedOperator" id="operatorSelect" class="form-control">
                                     <option value="_" selected="selected">None</option>
                                   </select>
-                                </div>
+                                </div> -->
                                 <input type="button" class="btn btn-primary" onClick="startDemo(); return false;" value="Start Discovery"/>
                                 
                                 <fieldset disabled>
