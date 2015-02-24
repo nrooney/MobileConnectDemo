@@ -74,6 +74,13 @@ body {
 	p {
 		font-size: $fontsize;
 	}
+
+	.container{
+		div{
+			background: $bodybackgroundgrey;
+			text-align: center;
+		}
+	}
 }
 
 .features {

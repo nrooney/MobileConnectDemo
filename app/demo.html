@@ -39,7 +39,6 @@
 window.localStorage.clear();
 
 var discoveryServiceUriDefault="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; //NOT GOING TO CHANGE 
-
 var discoveryServiceUri="https://stage-exchange-test.apigee.net/gsma/v2/discovery"; 
 var discoveryClientID="bAGDtUyghGlOMoml7mTD2SCypkjvXFfc"; 
 var discoveryClientSecret="Z9hy5sz8DALmBpn6MR7Nvd04"; 
@@ -94,7 +93,7 @@ function logoComplete(logoResult) {
     }
 }
 
-function startDiscovery(){
+function startDemo(){
     // steve's demo parsed mnc mcc here
     startActiveDiscovery();
 }
@@ -139,15 +138,15 @@ function parseDiscoveryResult(discoveryResult){
     discRespSubscriberId = discoveryResult.getResponse().getSubscriber_id();
     authorizationEndpoint = discoveryResult.getResponse().getApiFunction('operatorid', 'authorization');
 
+    runAuthorization();
+
     $("#cannotFindOperator").hide();
     $("#foundOperator").show();
     $("#foundOperator #foundOperatorName").text(operatorName);
-    $("#timeToLogin").show();
 }
 
-function runAuthorization() {
+function  runAuthorization(){
     console.log("\nIN FUNCTION: runAuthorization");
-
     var prompt='login';
     var max_age=3600;
     var acr_values='2';
@@ -282,47 +281,24 @@ function userinfoCallbackFunction(userinfo) {
         <div class="jumbotron login">
             <div class="container">
 
-                <!-- TOP ROW (intro) -->
+                <!-- ROW -->
                 <div class="col-md-12">
-                    <a name="login"></a><h2>Login</h2> 
+                    <a name="login"></a><h2>Login with...</h2> 
+                    <span name="loginlogo" id="loginlogo"><em>Login with Mobile Connect</em></span>
                     <p>GameZube requires you to login using Mobile Connect, Mobile Connect uses your mobile phone number and network operator to log you in safely and securly. 
                     <div name="loginBlock" id="loginBlock" >
-                        <span name="loginlogo" id="loginlogo"><em>Login with Mobile Connect</em></span>
-                    </div>
-                </div>
-
-                <!-- THREE COLUMNS FOR LOGIN: DISCOVER-->
-                <div class="col-md-4">
-                    <h3>Discover</h3>
-                    <div id="cannotFindOperator" style="display:block">
-                        <p>We cannot detect your operator, please click below to locate discover your operator!</p>
+                        <div id="cannotFindOperator" style="display:block">
+                            <p>We cannot detect your operator, please click below to locate discover your operator!</p>
+                        </div>
+                        <div id="foundOperator" style="display:none">
+                            <p>Your operator has been identified as <span id="foundOperatorName"></span>, now you can login!</p>
+                        </div>
                         <form>
                             <fieldset>
-                                <input type="button" class="btn btn-primary" onClick="startDiscovery(); return false;" value="Start Discovery"/>
+                                <input type="button" class="btn btn-primary" onClick="startDemo(); return false;" value="Login"/>
                             </fieldset>
                         </form>
                     </div>
-                    <div id="foundOperator" style="display:none">
-                        <p>Your operator has been identified as <span id="foundOperatorName"></span>, now you can login!</p>
-                    </div>
-                </div>
-
-                <!-- THREE COLUMNS FOR LOGIN: LOGIN-->
-                <div class="col-md-4">
-                    <h3>Login</h3>
-                    <div id="timeToLogin" style="display:none">
-                        <form>
-                            <!-- <fieldset disabled> -->
-                            <fieldset>
-                                <button type="button" class="btn btn-primary" onClick="runAuthorization()">Login</button>
-                            </fieldset>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- THREE COLUMNS FOR LOGIN: SUCCESS-->
-                <div class="col-md-4">
-                    <h3>Success!</h3>
                 </div>
 
             </div><!-- /.container -->
@@ -339,12 +315,30 @@ function userinfoCallbackFunction(userinfo) {
             <div class="container">
                 <a name="contact"></a><h2>Contact GameZube Support</h2>
                 <p>Need to find us? How about sending us a tweet, visit us at our offices, send a carrier pigeon or contact one of our friendly support staff!</p>
+                <div class="col-md-4" id="support">
+                    <h3>Support</h3>
+                    <canvas id="aCanvas">
+                    Your browser does not support the HTML5 canvas tag.</canvas>
+                    <p>If you have any problem please contact our helpful staff!</p>
+                </div>
+                <div class="col-md-4" id="officelocation">
+                    <h3>Location</h3>
+                    <canvas id="aCanvas">
+                    Your browser does not support the HTML5 canvas tag.</canvas>
+                    <p>Visit our new offices in the great city of Tokyo.</p>
+                </div>
+                <div class="col-md-4" id="social">
+                    <h3>Social</h3>
+                    <canvas id="aCanvas">
+                    Your browser does not support the HTML5 canvas tag.</canvas>
+                    <p>Contact us on Twitter!</p>
+                </div>
             </div>
         </div>
 
         <footer class="footer">
           <div class="container">
-            <p class="text-muted">Footer stuff.</p>
+            <p class="text-muted">© GameZube 2015</p>
           </div>
         </footer>
 

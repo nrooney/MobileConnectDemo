@@ -7167,6 +7167,10 @@ body {
 .contact p {
   font-size: 15px;
 }
+.contact .container div {
+  background: #CCCCCE;
+  text-align: center;
+}
 
 .features {
   background: #436AA2;
