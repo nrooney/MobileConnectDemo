@@ -248,7 +248,7 @@ function getAppContent(){
 }
 
 function logout(){
-	revokeToken(url, access_token, client_id, client_secret);
+	//revokeToken(url, access_token, client_id, client_secret);
 	sessionStorage.clear();
 	location.reload();
 }
