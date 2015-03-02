@@ -7167,9 +7167,12 @@ body {
 .contact p {
   font-size: 15px;
 }
-.contact .container div {
-  background: #CCCCCE;
+.contact .container .col-md-4 {
   text-align: center;
+}
+.contact #myCanvas {
+  width: 100%;
+  height: 100%;
 }
 
 .features {
@@ -7180,6 +7183,77 @@ body {
 }
 .features p, .features h2, .features h3, .features h4, .features label {
   color: #fff;
+}
+.features .container .col-md-4 {
+  text-align: center;
+}
+
+#videos p {
+  font-size: 18px;
+  background: #BE6747;
+  font-weight: bold;
+  padding: 10px;
+  color: #fff;
+}
+#videos iframe {
+  text-align: center;
+  width: 400px;
+  height: 225px;
+  margin-bottom: 20px;
+  /* Small devices (tablets, 768px and up) */
+  /* Medium devices (desktops, 992px and up) */
+  /* Large devices (large desktops, 1200px and up) */
+}
+@media (min-width: 768px) {
+  #videos iframe {
+    width: 450px;
+    height: 243px;
+  }
+}
+@media (min-width: 992px) {
+  #videos iframe {
+    width: 100%;
+  }
+}
+@media (min-width: 1200px) {
+  #videos iframe {
+    width: 100%;
+    height: 306px;
+  }
+}
+
+#friends .friend {
+  text-align: center;
+}
+#friends .friend p {
+  font-weight: bold;
+  font-size: 15px;
+}
+#friends .friend a:hover img {
+  opacity: 0.4;
+}
+#friends .friend a img {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+#logobox {
+  text-align: center;
+  padding: 20px 0;
+}
+#logobox img {
+  width: 70%;
+}
+
+#logoutnav {
+  display: none;
+}
+
+.round-image {
+  border-radius: 100%;
+  -o-border-radius: 100%;
+  -webkit-border-radius: 100%;
+  -moz-border-radius: 100%;
 }
 
 .footer {
